@@ -54,10 +54,7 @@ module Optopus
 
     def initialize(value, &block)
       @args = value ? [value] : []
-
-      if block
-        (class<<self; self; end).send(:define_method, :evaluate, &block)
-      end
+      (class<<self; self; end).send(:define_method, :evaluate, &block)
     end
 
     def parse_error(reason)
