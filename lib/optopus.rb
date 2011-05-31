@@ -24,7 +24,7 @@ module Optopus
       @desc = nil
     end
 
-    def file(hd, *tl)
+    def file(args_hd, *args_tl)
       @desc ||= 'reading config file'
       @opts.add_file([args_hd] + args_tl, @desc)
       @desc = nil
