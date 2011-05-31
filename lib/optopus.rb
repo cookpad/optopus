@@ -1,4 +1,8 @@
 require 'optparse'
+require 'optparse/date'
+require 'optparse/shellwords'
+require 'optparse/time'
+require 'optparse/uri'
 require 'yaml'
 
 module Optopus
