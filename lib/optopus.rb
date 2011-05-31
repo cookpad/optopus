@@ -85,8 +85,17 @@ module Optopus
 
   class Options
     def initialize
+      @parser = OptionParser.new
       @opts_args = []
     end
+
+    def banner=(v)         ; @parser.banner = v         ; end
+    def program_name=(v)   ; @parser.program_name = v   ; end
+    def summary_width=(v)  ; @parser.psummary_width = v ; end
+    def summary_indent=(v) ; @parser.summary_indent = v ; end
+    def default_argv=(v)   ; @parser.default_argv = v   ; end
+    def version=(v)        ; @parser.version = v        ; end
+    def release=(v)        ; @parser.release = v        ; end
 
     def add(name, args, desc, block)
       args, defval = fix_args(args, desc)
@@ -108,7 +117,6 @@ module Optopus
     end
 
     def parse!
-      parser = OptionParser.new
       options = {}
       has_arg_h = false
 
@@ -116,7 +124,7 @@ module Optopus
         options[name] = defval
         has_arg_h = (args.first == '-h')
 
-        parser.on(*args) do |*v|
+        @parser.on(*args) do |*v|
           value = v.first || true
           options[name] = value
           CheckerContext.evaluate(v, {:value => value}, &block) if block
@@ -124,7 +132,7 @@ module Optopus
       end
 
       if @file_args
-        parser.on(*@file_args) do |v|
+        @parser.on(*@file_args) do |v|
           config = YAML.load_file(v)
 
           @opts_args.each do |name, args, defval, block|
@@ -148,13 +156,13 @@ module Optopus
       end
 
       unless has_arg_h
-        parser.on_tail('-h', '--help', 'Show this message') do
-          puts parser.help
+        @parser.on_tail('-h', '--help', 'Show this message') do
+          puts @parser.help
           exit
         end
       end
 
-      parser.parse!(ARGV)
+      @parser.parse!
       CheckerContext.evaluate([], {:options => options},&@on_after) if @on_after
 
       return options
