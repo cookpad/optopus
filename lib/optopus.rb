@@ -34,8 +34,8 @@ module Optopus
       @opts.add_after(block)
     end
 
-    def exception(&block)
-      @opts.add_exception(block)
+    def error(&block)
+      @opts.add_error(block)
     end
   end # DefinerContext
 
@@ -102,8 +102,8 @@ module Optopus
       @on_after = block
     end
 
-    def add_exception(block)
-      @on_exception = block
+    def add_error(block)
+      @on_error = block
     end
 
     def parse!
@@ -158,8 +158,8 @@ module Optopus
 
       return options
     rescue => e
-      if @on_exception
-        @on_exception.call(e)
+      if @on_error
+        @on_error.call(e)
       else
         raise e
       end

@@ -28,7 +28,7 @@ opts = optopus do
     # @options.each { ... }
   end
 
-  exception do |e|
+  error do |e|
     $stderr.puts e.message
     exit 1
   end
