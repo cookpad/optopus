@@ -20,6 +20,9 @@ opts = optopus do
   desc 'comma-separated list of accepted extensions'
   option :accept, '-A', '--accept LIST', :type => Array, :default => []
 
+  desc 'access protocol'
+  option :protocol, '-P', '--protocol PROTO', :type => [:http, :ftp]
+
   desc 'access timestamp'
   option :timestamp, '-T', '--timestamp TIME', :type => Time
 
