@@ -10,8 +10,8 @@ gem install optopus
 
 == Example
 
-  #!/usr/bin/env ruby
-  require 'lib/optopus'
+  require 'rubygems'
+  require 'optopus'
   
   opts = optopus do
     desc 'print lots of debugging information'
