@@ -2,8 +2,7 @@
 require 'lib/optopus'
 
 opts = optopus do
-  #desc 'program information'
-  option :info, '-I'
+  option :info, '-I', :desc 'program information'
 
   desc 'print lots of debugging information'
   option :debug, '-d', '--debug'
