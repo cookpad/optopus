@@ -111,7 +111,7 @@ module Optopus
     end
 
     def add_file(args, desc)
-      raise 'config file option is defined' if @file_args
+      raise 'two or more config_file is defined' if @file_args
       args, defval = fix_args(args, desc)
       @file_args = args
     end
