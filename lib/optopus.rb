@@ -15,6 +15,14 @@ module Optopus
       @opts = opts
     end
 
+    def banner=(v)         ; @opts.banner = v         ; end
+    def program_name=(v)   ; @opts.program_name = v   ; end
+    def summary_width=(v)  ; @opts.psummary_width = v ; end
+    def summary_indent=(v) ; @opts.summary_indent = v ; end
+    def default_argv=(v)   ; @opts.default_argv = v   ; end
+    def version=(v)        ; @opts.version = v        ; end
+    def release=(v)        ; @opts.release = v        ; end
+
     def desc(str)
       @desc = str
     end
@@ -118,10 +126,12 @@ module Optopus
 
     def parse!
       options = {}
+      has_arg_v = false
       has_arg_h = false
 
       @opts_args.each do |name, args, defval, block|
         options[name] = defval
+        has_arg_v = (args.first == '-v')
         has_arg_h = (args.first == '-h')
 
         @parser.on(*args) do |*v|
@@ -155,8 +165,16 @@ module Optopus
         end
       end
 
+      unless has_arg_v
+        @parser.on_tail('-v', '--version', 'show version') do
+          v = @parser.ver or abort("#{@parser.program_name}: version unknown")
+          puts v
+          exit
+        end
+      end
+
       unless has_arg_h
-        @parser.on_tail('-h', '--help', 'Show this message') do
+        @parser.on_tail('-h', '--help', 'show this message') do
           puts @parser.help
           exit
         end
