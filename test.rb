@@ -29,8 +29,7 @@ opts = optopus do
   end
 
   error do |e|
-    $stderr.puts e.message
-    exit 1
+    abort(e.message)
   end
 end
 
