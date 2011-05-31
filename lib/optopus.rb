@@ -48,15 +48,15 @@ module Optopus
   end # DefinerContext
 
   class CheckerContext
-    def self.evaluate(args, vars = {}, &block)
-      self.new(args, vars).instance_eval(&block)
+    def self.evaluate(args, pass, &block)
+      self.new(args, &block).evaluate(pass)
     end
 
-    def initialize(value, vars = {})
+    def initialize(value, &block)
       @args = value ? [value] : []
 
-      vars.each do |name, value|
-        instance_variable_set("@#{name}", value)
+      if block
+        (class<<self; self; end).send(:define_method, :evaluate, &block)
       end
     end
 
@@ -137,7 +137,7 @@ module Optopus
         @parser.on(*args) do |*v|
           value = v.first || true
           options[name] = value
-          CheckerContext.evaluate(v, {:value => value}, &block) if block
+          CheckerContext.evaluate(v, value, &block) if block
         end
       end
 
@@ -187,7 +187,7 @@ module Optopus
       end
 
       @parser.parse!
-      CheckerContext.evaluate([], {:options => options}, &@on_after) if @on_after
+      CheckerContext.evaluate([], options, &@on_after) if @on_after
 
       return options
     rescue => e

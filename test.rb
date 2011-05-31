@@ -11,9 +11,9 @@ opts = optopus do
   option :output_file, '-o', '--output-file FILE', :default => '/var/log/xxx.log'
 
   desc 'set number of retries to NUMBER (0 unlimits)'
-  option :tries, '-t', '--tries NUMBER', :type => Integer, :default => 0 do
+  option :tries, '-t', '--tries NUMBER', :type => Integer, :default => 0 do |value|
     # custom validation
-    invalid_argument if @value < 0
+    invalid_argument if value < 0
   end
 
   desc 'comma-separated list of accepted extensions'
@@ -28,14 +28,14 @@ opts = optopus do
   # read yaml config file and overwrite options
   config_file '-c', '--config-file FILE'
 
-  after do
+  after do |options|
     # postprocessing
-    # @options.each { ... }
+    # options.each { ... }
   end
 
-  #error do |e|
-  #  abort(e.message)
-  #end
+  error do |e|
+    abort(e.message)
+  end
 end
 
 p opts
