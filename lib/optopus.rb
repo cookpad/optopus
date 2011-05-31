@@ -128,7 +128,20 @@ module Optopus
 
           @opts_args.each do |name, args, defval, block|
             value = config[name] || config[name.to_s]
-            options[name] = value if value
+
+            next unless value
+
+            value = value.to_s
+            type = args.find {|i| i.kind_of?(Class) }
+            pat, conv =  OptionParser::DefaultList.atype[type]
+
+            if pat and pat !~ value
+              raise OptionParser::InvalidArgument.new("(#{name}: #{value})")
+            end
+
+            value = conv.call(value) if conv
+
+            options[name] = value
           end
         end
       end
