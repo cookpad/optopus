@@ -124,8 +124,11 @@ module Optopus
 
       if @file_args
         parser.on(*@file_args) do |v|
-          YAML.load_file(v).each do |k, v|
-            options[k.to_sym] = v
+          config = YAML.load_file(v)
+
+          @opts_args.each do |name, args, defval, block|
+            value = config[name] || config[name.to_s]
+            options[name] = value if value
           end
         end
       end
@@ -141,7 +144,6 @@ module Optopus
       CheckerContext.evaluate([], {:options => options},&@on_after) if @on_after
 
       return options
-
     rescue => e
       if @on_exception
         @on_exception.call(e)
