@@ -21,7 +21,7 @@ opts = optopus do
   option :timestamp, '-T', '--timestamp TIME', :type => Time
 
   # read yaml config file and overwrite options
-  file '-c', '--config-file FILE'
+  config_file '-c', '--config-file FILE'
 
   after do
     # postprocessing

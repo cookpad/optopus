@@ -24,7 +24,7 @@ module Optopus
       @desc = nil
     end
 
-    def file(args_hd, *args_tl)
+    def config_file(args_hd, *args_tl)
       @desc ||= 'reading config file'
       @opts.add_file([args_hd] + args_tl, @desc)
       @desc = nil
@@ -94,6 +94,7 @@ module Optopus
     end
 
     def add_file(args, desc)
+      raise 'config file option is defined' if @file_args
       args, defval = fix_args(args, desc)
       @file_args = args
     end
@@ -136,7 +137,7 @@ module Optopus
             pat, conv =  OptionParser::DefaultList.atype[type]
 
             if pat and pat !~ value
-              raise OptionParser::InvalidArgument.new("(#{name}: #{value})")
+              raise OptionParser::InvalidArgument.new(v, "(#{name}: #{value})")
             end
 
             value = conv.call(value) if conv
