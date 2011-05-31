@@ -3,33 +3,45 @@ require 'yaml'
 
 module Optopus
   class DefinerContext
+    def self.evaluate(opts, &block)
+      self.new(opts).instance_eval(&block)
+    end
+
     def initialize(opts)
       @opts = opts
     end
 
-    def desc(text)
-      @desc = text
+    def desc(str)
+      @desc = str
     end
 
-    def option(name, hd, *tl, &checker)
-      @opts.add(name, [hd] + tl, @desc, checker)
+    def option(name, args_hd, *args_tl, &block)
+      @opts.add(name, [args_hd] + args_tl, @desc, block)
       @desc = nil
     end
 
     def file(hd, *tl)
       @desc ||= 'reading config file'
-      @opts.file = [[hd] + tl, @desc]
+      @opts.add_file([args_hd] + args_tl, @desc)
       @desc = nil
     end
 
     def after(&block)
-      @opts.after = block
+      @opts.add_after(block)
     end
-  end
+
+    def exception(&block)
+      @opts.add_exception(block)
+    end
+  end # DefinerContext
 
   class CheckerContext
-    def initialize(args, vars = {})
-      @args = args
+    def self.evaluate(args, vars = {}, &block)
+      self.new(args, vars).instance_eval(&block)
+    end
+
+    def initialize(value, vars = {})
+      @args = value ? [value] : []
 
       vars.each do |name, value|
         instance_variable_set("@#{name}", value)
@@ -65,67 +77,56 @@ module Optopus
     def ambiguous_argument
       raise OptionParser::AmbiguousArgument.new(*@args)
     end
-  end
+  end # CheckerContext
 
   class Options
-    attr_accessor :file
-    attr_accessor :after
-
     def initialize
-      @opts = {}
+      @opts_args = []
     end
 
-    def add(name, args, desc, checker)
-      @opts[name.to_sym] = [args, desc, checker]
+    def add(name, args, desc, block)
+      args, defval = fix_args(args, desc)
+      @opts_args << [name.to_sym, args, defval, block]
+    end
+
+    def add_file(args, desc)
+      args, defval = fix_args(args, desc)
+      @file_args = args
+    end
+
+    def add_after(block)
+      @on_after = block
+    end
+
+    def add_exception(block)
+      @on_exception = block
     end
 
     def parse!
-      parsed_options = {}
       parser = OptionParser.new
-      has_h = false
+      options = {}
+      has_arg_h = false
 
-      @opts.each do |name, values|
-        args, desc, checker = values
-
-        if args.last.kind_of?(Hash)
-          hash = args.pop
-          args = (args.slice(0, 2) + [hash[:type], hash[:desc] || desc]).select {|i| i }
-          parsed_options[name] = hash[:default]
-        elsif desc
-          args = args + [desc]
-        end
-
-        has_h = (args.first == '-h')
+      @opts_args.each do |name, args, defval, block|
+        options[name] = defval
+        has_arg_h = (args.first == '-h')
 
         parser.on(*args) do |*v|
           value = v.first || true
-          parsed_options[name] = value
-
-          if checker
-            CheckerContext.new(v.select {|i| i }, :value => value).instance_eval(&checker)
-          end
+          options[name] = value
+          CheckerContext.evaluate(v, {:value => value}, &block) if block
         end
       end
 
-      if file
-        args, desc = file
-
-        if args.last.kind_of?(Hash)
-          hash = args.pop
-          args = (args.slice(0, 2) + [hash[:type], hash[:desc] || desc]).select {|i| i }
-          parsed_options[name] = hash[:default]
-        elsif desc
-          args = args + [desc]
-        end
-
-        parser.on(*args) do |v|
+      if @file_args
+        parser.on(*@file_args) do |v|
           YAML.load_file(v).each do |k, v|
-            parsed_options[k.to_sym] = v
+            options[k.to_sym] = v
           end
         end
       end
 
-      unless has_h
+      unless has_arg_h
         parser.on_tail('-h', '--help', 'Show this message') do
           puts parser.help
           exit
@@ -133,21 +134,37 @@ module Optopus
       end
 
       parser.parse!(ARGV)
+      CheckerContext.evaluate([], {:options => options},&@on_after) if @on_after
 
-      if after
-        CheckerContext.new([], :options => parsed_options).instance_eval(&after)
+      return options
+
+    rescue => e
+      if @on_exception
+        @on_exception.call(e)
+      else
+        raise e
+      end
+    end
+
+    private
+    def fix_args(args, desc)
+      defval = nil
+
+      if args.last.kind_of?(Hash)
+        hash = args.pop
+        args = (args.slice(0, 2) + [hash[:type], hash[:desc] || desc]).select {|i| i }
+        defval = hash[:default]
+      elsif desc
+        args = args + [desc]
       end
 
-      return parsed_options
-    rescue RuntimeError => e
-      $stderr.puts e.message
-      exit 1
+      return [args, defval]
     end
-  end
-end
+  end # Options
+end # Optopus
 
 def optopus(&block)
   opts = Optopus::Options.new
-  Optopus::DefinerContext.new(opts).instance_eval(&block)
+  Optopus::DefinerContext.evaluate(opts, &block)
   opts.parse!
 end
