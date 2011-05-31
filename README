@@ -1,3 +1,15 @@
+= optopus
+
+== Description
+
+Enhanced option parser.
+
+== Install
+
+gem install optopus
+
+== Example
+
   #!/usr/bin/env ruby
   require 'lib/optopus'
   
