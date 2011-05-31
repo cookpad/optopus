@@ -146,7 +146,13 @@ module Optopus
           config = YAML.load_file(v)
 
           @opts_args.each do |name, args, defval, block|
-            value = config[name] || config[name.to_s]
+            if args[1].kind_of?(String) and args[1] =~ /-+([^\s=]+)/
+              key = $1
+            else
+              key = name.to_s
+            end
+
+            value = config[key] || config[name.to_s]
 
             next unless value
 
