@@ -187,7 +187,7 @@ module Optopus
       end
 
       @parser.parse!
-      CheckerContext.evaluate([], {:options => options},&@on_after) if @on_after
+      CheckerContext.evaluate([], {:options => options}, &@on_after) if @on_after
 
       return options
     rescue => e

@@ -2,7 +2,7 @@
 require 'lib/optopus'
 
 opts = optopus do
-  desc 'program information'
+  #desc 'program information'
   option :info, '-I'
 
   desc 'print lots of debugging information'
@@ -34,9 +34,9 @@ opts = optopus do
     # @options.each { ... }
   end
 
-  error do |e|
-    abort(e.message)
-  end
+  #error do |e|
+  #  abort(e.message)
+  #end
 end
 
 p opts
