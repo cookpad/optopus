@@ -23,7 +23,7 @@ opts = optopus do
   option :protocol, '-P', '--protocol PROTO', :type => [:http, :ftp]
 
   desc 'access timestamp'
-  option :timestamp, '-T', '--timestamp TIME', :type => Time
+  option :timestamp, '-T', '--timestamp TIME', :type => Time, :required => true
 
   # read yaml config file and overwrite options
   config_file '-c', '--config-file FILE'
