@@ -5,6 +5,12 @@ require 'optparse/time'
 require 'optparse/uri'
 require 'yaml'
 
+class OptionParser
+  class NotGiven < ParseError
+    const_set(:Reason, 'required option was not given'.freeze)
+  end
+end
+
 module Optopus
   class DefinerContext
     def self.evaluate(opts, &block)
@@ -103,13 +109,13 @@ module Optopus
     def release=(v)        ; @parser.release = v        ; end
 
     def add(name, args, desc, block)
-      args, defval = fix_args(args, desc)
-      @opts_args << [name.to_sym, args, defval, block]
+      args, defval, required = fix_args(args, desc)
+      @opts_args << [name.to_sym, args, defval, block, required]
     end
 
     def add_file(args, desc)
       raise 'two or more config_file is defined' if @file_args
-      args, defval = fix_args(args, desc)
+      args, defval, required = fix_args(args, desc)
       @file_args = args
     end
 
@@ -126,8 +132,8 @@ module Optopus
       has_arg_v = false
       has_arg_h = false
 
-      @opts_args.each do |name, args, defval, block|
-        options[name] = defval
+      @opts_args.each do |name, args, defval, block, required|
+        options[name] = defval unless defval.nil?
         has_arg_v = (args.first == '-v')
         has_arg_h = (args.first == '-h')
 
@@ -142,7 +148,7 @@ module Optopus
         @parser.on(*@file_args) do |v|
           config = YAML.load_file(v)
 
-          @opts_args.each do |name, args, defval, block|
+          @opts_args.each do |name, args, defval, block, required|
             if args[1].kind_of?(String) and args[1] =~ /-+([^\s=]+)/
               key = $1
             else
@@ -184,6 +190,13 @@ module Optopus
       end
 
       @parser.parse!
+
+      @opts_args.each do |name, args, defval, block, required|
+        if required and not options.has_key?(name)
+          raise OptionParser::NotGiven, args.first
+        end
+      end
+
       CheckerContext.evaluate([], options, &@on_after) if @on_after
 
       return options
@@ -198,16 +211,18 @@ module Optopus
     private
     def fix_args(args, desc)
       defval = nil
+      required = false
 
       if args.last.kind_of?(Hash)
         hash = args.pop
         args = (args.slice(0, 2) + [hash[:type], hash[:desc] || desc]).select {|i| i }
         defval = hash[:default]
+        required = hash[:required]
       elsif desc
         args = args + [desc]
       end
 
-      return [args, defval]
+      return [args, defval, required]
     end
   end # Options
 end # Optopus
