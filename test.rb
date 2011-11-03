@@ -39,3 +39,4 @@ opts = optopus do
 end
 
 p opts
+p opts.config_file

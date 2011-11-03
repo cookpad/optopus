@@ -131,22 +131,12 @@ module Optopus
       options = {}
       has_arg_v = false
       has_arg_h = false
-
-      @opts_args.each do |name, args, defval, block, required|
-        options[name] = defval unless defval.nil?
-        has_arg_v = (args.first == '-v')
-        has_arg_h = (args.first == '-h')
-
-        @parser.on(*args) do |*v|
-          value = v.first || true
-          options[name] = value
-          CheckerContext.evaluate(v, value, &block) if block
-        end
-      end
+      options.instance_eval("def config_file; @__config_file__; end")
 
       if @file_args
         @parser.on(*@file_args) do |v|
           config = YAML.load_file(v)
+          options.instance_variable_set(:@__config_file__, config)
 
           @opts_args.each do |name, args, defval, block, required|
             if args[1].kind_of?(String) and args[1] =~ /-+([^\s=]+)/
@@ -155,7 +145,7 @@ module Optopus
               key = name.to_s
             end
 
-            value = config[key] || config[name.to_s]
+            value = config[key] || config[key.gsub(/[-_]/, '-')] || key.gsub(/[-_]/, '_')
 
             next unless value
 
@@ -171,6 +161,18 @@ module Optopus
 
             options[name] = value
           end
+        end
+      end
+
+      @opts_args.each do |name, args, defval, block, required|
+        options[name] = defval unless defval.nil?
+        has_arg_v = (args.first == '-v')
+        has_arg_h = (args.first == '-h')
+
+        @parser.on(*args) do |*v|
+          value = v.first || true
+          options[name] = value
+          CheckerContext.evaluate(v, value, &block) if block
         end
       end
 

@@ -51,3 +51,4 @@ gem install optopus
   end
   
   p opts
+  p opts.config_file
