@@ -25,6 +25,9 @@ opts = optopus do
   desc 'access timestamp'
   option :timestamp, '-T', '--timestamp TIME', :type => Time, :required => true
 
+  desc 'resource record'
+  option :record, '-R', '--record RECORD', :type => Array, :multiple => true
+
   # read yaml config file and overwrite options
   config_file '-c', '--config-file FILE'
 

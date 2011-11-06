@@ -92,6 +92,10 @@ module Optopus
     def ambiguous_argument
       raise OptionParser::AmbiguousArgument.new(*@args)
     end
+
+    def not_given
+      raise OptionParser::NotGiven.new(*@args)
+    end
   end # CheckerContext
 
   class Options
@@ -109,13 +113,13 @@ module Optopus
     def release=(v)        ; @parser.release = v        ; end
 
     def add(name, args, desc, block)
-      args, defval, required = fix_args(args, desc)
-      @opts_args << [name.to_sym, args, defval, block, required]
+      args, defval, required, multiple = fix_args(args, desc)
+      @opts_args << [name.to_sym, args, defval, block, required, multiple]
     end
 
     def add_file(args, desc)
       raise 'two or more config_file is defined' if @file_args
-      args, defval, required = fix_args(args, desc)
+      args, defval, required, multiple = fix_args(args, desc)
       @file_args = args
     end
 
@@ -138,7 +142,7 @@ module Optopus
           config = YAML.load_file(v)
           options.instance_variable_set(:@__config_file__, config)
 
-          @opts_args.each do |name, args, defval, block, required|
+          @opts_args.each do |name, args, defval, block, required, multiple|
             if args[1].kind_of?(String) and args[1] =~ /-+([^\s=]+)/
               key = $1
             else
@@ -158,20 +162,27 @@ module Optopus
             end
 
             value = conv.call(value) if conv
-
+            
             options[name] = value
           end
         end
       end
 
-      @opts_args.each do |name, args, defval, block, required|
+      @opts_args.each do |name, args, defval, block, required, multiple|
         options[name] = defval unless defval.nil?
         has_arg_v = (args.first == '-v')
         has_arg_h = (args.first == '-h')
 
         @parser.on(*args) do |*v|
           value = v.first || true
-          options[name] = value
+
+          if multiple
+            options[name] ||= []
+            options[name] << value
+          else
+            options[name] = value
+          end
+
           CheckerContext.evaluate(v, value, &block) if block
         end
       end
@@ -193,7 +204,7 @@ module Optopus
 
       @parser.parse!
 
-      @opts_args.each do |name, args, defval, block, required|
+      @opts_args.each do |name, args, defval, block, required, multiple|
         if required and not options.has_key?(name)
           raise OptionParser::NotGiven, args.first
         end
@@ -214,17 +225,19 @@ module Optopus
     def fix_args(args, desc)
       defval = nil
       required = false
+      multiple = false
 
       if args.last.kind_of?(Hash)
         hash = args.pop
         args = (args.slice(0, 2) + [hash[:type], hash[:desc] || desc]).select {|i| i }
         defval = hash[:default]
         required = hash[:required]
+        multiple = hash[:multiple]
       elsif desc
         args = args + [desc]
       end
 
-      return [args, defval, required]
+      return [args, defval, required, multiple]
     end
   end # Options
 end # Optopus
