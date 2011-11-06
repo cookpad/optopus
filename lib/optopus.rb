@@ -63,38 +63,46 @@ module Optopus
       (class<<self; self; end).send(:define_method, :evaluate, &block)
     end
 
-    def parse_error(reason)
-      e = OptionParser::ParseError.new(*@args)
+    def parse_error(reason, *args)
+      args = @args if args.empty?
+      e = OptionParser::ParseError.new(*args)
       e.reason = reason
       raise e
     end
 
-    def ambiguous_option
-      raise OptionParser::AmbiguousOption.new(*@args)
+    def ambiguous_option(*args)
+      args = @args if args.empty?
+      raise OptionParser::AmbiguousOption.new(*args)
     end
 
-    def needless_argument
-      raise OptionParser::NeedlessArgument.new(*@args)
+    def needless_argument(*args)
+      args = @args if args.empty?
+      raise OptionParser::NeedlessArgument.new(*args)
     end
 
-    def missing_argument
-      raise OptionParser::MissingArgument.new(*@args)
+    def missing_argument(*args)
+      args = @args if args.empty?
+      raise OptionParser::MissingArgument.new(*args)
     end
 
-    def invalid_option
-      raise OptionParser::InvalidOption.new(*@args)
+    def invalid_option(*args)
+      args = @args if args.empty?
+      raise OptionParser::InvalidOption.new(*args)
     end
 
-    def invalid_argument
-      raise OptionParser::InvalidArgument.new(*@args)
+    def invalid_argument(*args)
+      args = @args if args.empty?
+      raise OptionParser::InvalidArgument.new(*args)
     end
 
-    def ambiguous_argument
-      raise OptionParser::AmbiguousArgument.new(*@args)
+    def ambiguous_argument(*args)
+      args = @args if args.empty?
+      raise OptionParser::AmbiguousArgument.new(*args)
     end
 
-    def not_given
-      raise OptionParser::NotGiven.new(*@args)
+    def not_given(*args)
+      args = @args if args.empty?
+      raise OptionParser::NotGiven.new(*args)
     end
   end # CheckerContext
 
@@ -162,11 +170,11 @@ module Optopus
             end
 
             value = conv.call(value) if conv
-            
+
             options[name] = value
           end
         end
-      end
+      end # if @file_args
 
       @opts_args.each do |name, args, defval, block, required, multiple|
         options[name] = defval unless defval.nil?
