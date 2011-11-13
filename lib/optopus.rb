@@ -157,7 +157,14 @@ module Optopus
               key = name.to_s
             end
 
-            value = config[key] || config[key.gsub(/[-_]/, '-')] || key.gsub(/[-_]/, '_')
+            value = nil
+
+            [key, key.gsub(/[-_]/, '-'), key.gsub(/[-_]/, '_')].each do |k|
+              if value = config[k]
+                key = k
+                break
+              end
+            end
 
             next unless value
 
@@ -166,7 +173,7 @@ module Optopus
             pat, conv =  OptionParser::DefaultList.atype[type]
 
             if pat and pat !~ value
-              raise OptionParser::InvalidArgument.new(v, "(#{name}: #{value})")
+              raise OptionParser::InvalidArgument.new(v, "(#{key}: #{value})")
             end
 
             value = conv.call(value) if conv
