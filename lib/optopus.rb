@@ -168,7 +168,7 @@ module Optopus
 
             next unless value
 
-            value = value.to_s
+            value = orig_val = value.to_s
             type = args.find {|i| i.kind_of?(Class) }
             pat, conv =  OptionParser::DefaultList.atype[type]
 
@@ -177,6 +177,15 @@ module Optopus
             end
 
             value = conv.call(value) if conv
+
+            if value and block
+              begin
+                CheckerContext.evaluate(v, value, &block)
+              rescue OptionParser::ParseError => e
+                errmsg = "#{e.message}: #{key}=#{orig_val}"
+                raise OptionParser::ParseError, errmsg
+              end
+            end
 
             options[name] = value
           end
