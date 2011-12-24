@@ -260,7 +260,8 @@ module Optopus
       end
 
       (options.config_file || {}).each do |key, value|
-        key = key.gsub('-', '_').to_sym
+        next if key.kind_of?(Symbol)
+        key = key.to_s.gsub('-', '_').to_sym
         options[key] = value unless options.has_key?(key)
       end
 
