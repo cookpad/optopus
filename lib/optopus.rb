@@ -199,7 +199,7 @@ module Optopus
           end
         end # file_args_checker
 
-         @parser.on(*@file_args, &file_args_checker)
+        @parser.on(*@file_args, &file_args_checker)
       end # if @file_args
 
       @opts_args.each do |name, args, defval, block, required, multiple|
