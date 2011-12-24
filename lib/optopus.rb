@@ -154,7 +154,7 @@ module Optopus
       options.instance_eval("def config_file; @__config_file__; end")
 
       if @file_args
-        @parser.on(*@file_args) do |v|
+        file_args_checker = lambda do |v|
           config = YAML.load_file(v)
           options.instance_variable_set(:@__config_file__, config)
 
@@ -197,7 +197,9 @@ module Optopus
 
             options[name] = value
           end
-        end
+        end # file_args_checker
+
+         @parser.on(*@file_args, &file_args_checker)
       end # if @file_args
 
       @opts_args.each do |name, args, defval, block, required, multiple|
