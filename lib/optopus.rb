@@ -153,52 +153,52 @@ module Optopus
       has_arg_h = false
       options.instance_eval("def config_file; @__config_file__; end")
 
-      if @file_args
-        file_args_checker = lambda do |v|
-          config = YAML.load_file(v)
-          options.instance_variable_set(:@__config_file__, config)
+      file_args_checker = lambda do |v|
+        config = YAML.load_file(v)
+        options.instance_variable_set(:@__config_file__, config)
 
-          @opts_args.each do |name, args, defval, block, required, multiple|
-            if args[1].kind_of?(String) and args[1] =~ /-+([^\s=]+)/
-              key = $1
-            else
-              key = name.to_s
-            end
-
-            value = nil
-
-            [key, key.gsub(/[-_]/, '-'), key.gsub(/[-_]/, '_')].each do |k|
-              if value = config[k]
-                key = k
-                break
-              end
-            end
-
-            next unless value
-
-            value = orig_val = value.to_s
-            type = args.find {|i| i.kind_of?(Class) }
-            pat, conv =  OptionParser::DefaultList.atype[type]
-
-            if pat and pat !~ value
-              raise OptionParser::InvalidArgument.new(v, "(#{key}: #{value})")
-            end
-
-            value = conv.call(value) if conv
-
-            if value and block
-              begin
-                CheckerContext.evaluate(v, value, &block)
-              rescue OptionParser::ParseError => e
-                errmsg = "#{e.message}: #{key}=#{orig_val}"
-                raise OptionParser::ParseError, errmsg
-              end
-            end
-
-            options[name] = value
+        @opts_args.each do |name, args, defval, block, required, multiple|
+          if args[1].kind_of?(String) and args[1] =~ /-+([^\s=]+)/
+            key = $1
+          else
+            key = name.to_s
           end
-        end # file_args_checker
 
+          value = nil
+
+          [key, key.gsub(/[-_]/, '-'), key.gsub(/[-_]/, '_')].each do |k|
+            if value = config[k]
+              key = k
+              break
+            end
+          end
+
+          next unless value
+
+          value = orig_val = value.to_s
+          type = args.find {|i| i.kind_of?(Class) }
+          pat, conv =  OptionParser::DefaultList.atype[type]
+
+          if pat and pat !~ value
+            raise OptionParser::InvalidArgument.new(v, "(#{key}: #{value})")
+          end
+
+          value = conv.call(value) if conv
+
+          if value and block
+            begin
+              CheckerContext.evaluate(v, value, &block)
+            rescue OptionParser::ParseError => e
+              errmsg = "#{e.message}: #{key}=#{orig_val}"
+              raise OptionParser::ParseError, errmsg
+            end
+          end
+
+          options[name] = value
+        end
+      end # file_args_checker
+
+      if @file_args
         @parser.on(*@file_args, &file_args_checker)
       end # if @file_args
 
