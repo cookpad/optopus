@@ -157,10 +157,9 @@ module Optopus
         if v.kind_of?(Hash)
           config = v
 
-          config.keys.each do |key, value|
+          config.keys.each do |key|
             next unless key.kind_of?(Symbol)
-            key = key.to_s.gsub('_', '-')
-            config[key] = value
+            config[key.to_s.gsub('_', '-')] = config[key]
           end
         else
           config = YAML.load_file(v)
