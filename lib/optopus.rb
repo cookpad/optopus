@@ -156,14 +156,14 @@ module Optopus
       file_args_checker = lambda do |v|
         if v.kind_of?(Hash)
           config = v
-
-          config.keys.each do |key|
-            next unless key.kind_of?(Symbol)
-            config[key.to_s.gsub('_', '-')] = config[key]
-          end
         else
           config = YAML.load_file(v)
           yield(config) if @on_before
+        end
+
+        config.keys.each do |key|
+          next unless key.kind_of?(Symbol)
+          config[key.to_s.gsub('_', '-')] = config[key]
         end
 
         options.instance_variable_set(:@__config_file__, config)
