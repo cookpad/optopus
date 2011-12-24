@@ -44,6 +44,10 @@ module Optopus
       @desc = nil
     end
 
+    def before(&block)
+      @opts.add_before(block)
+    end
+
     def after(&block)
       @opts.add_after(block)
     end
@@ -129,6 +133,10 @@ module Optopus
       raise 'two or more config_file is defined' if @file_args
       args, defval, required, multiple = fix_args(args, desc)
       @file_args = args
+    end
+
+    def add_before(block)
+      @on_before = block
     end
 
     def add_after(block)
