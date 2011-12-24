@@ -234,6 +234,11 @@ module Optopus
         end
       end
 
+      (options.config_file || {}).each do |key, value|
+        key = key.gsub('-', '_').to_sym
+        options[key] = value unless options.has_key?(key)
+      end
+
       CheckerContext.evaluate([], options, &@on_after) if @on_after
 
       return options
