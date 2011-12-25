@@ -3,7 +3,7 @@ require 'lib/optopus'
 
 opts = optopus do
   before do |option|
-    option[:protocol] = 'ftp'
+    option[:protocol] = :ftp
     option[:undifeind_option3] = {:a => :b}
   end
 
