@@ -158,7 +158,7 @@ module Optopus
           config = v
         else
           config = YAML.load_file(v)
-          yield(config) if @on_before
+          @on_before.call(config) if @on_before
         end
 
         config.keys.each do |key|
