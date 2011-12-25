@@ -187,14 +187,22 @@ module Optopus
           next unless value
 
           value = orig_val = value.to_s
-          type = args.find {|i| i.kind_of?(Class) }
-          pat, conv =  OptionParser::DefaultList.atype[type]
 
-          if pat and pat !~ value
-            raise OptionParser::InvalidArgument.new(v, "(#{key}: #{value})")
+          if type = args.find {|i| i.kind_of?(Class) }
+            pat, conv =  OptionParser::DefaultList.atype[type]
+
+            if pat and pat !~ value
+              raise OptionParser::InvalidArgument.new(v, "(#{key}: #{value})")
+            end
+
+            value = conv.call(value) if conv
+          elsif type = args.find {|i| i.kind_of?(Array) }
+            unless type.map {|i| i.to_s }.include?(value.to_s)
+              raise OptionParser::InvalidArgument.new(key, value)
+            end
+
+            value = value.to_s.to_sym
           end
-
-          value = conv.call(value) if conv
 
           if value and block
             begin
