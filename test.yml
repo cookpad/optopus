@@ -2,3 +2,5 @@
 output-file: /var/log/output.txt
 tries: 3
 timestamp: 2011/05/31
+undefined-option: 9999
+undefined-option2: test

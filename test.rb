@@ -2,6 +2,11 @@
 require 'lib/optopus'
 
 opts = optopus do
+  before do |option|
+    option[:protocol] = 'ftp'
+    option[:undifeind_option3] = {:a => :b}
+  end
+
   option :info, '-I', :desc => 'program information'
 
   desc 'print lots of debugging information'
