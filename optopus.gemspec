@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name              = 'optopus'
-  spec.version           = '0.2.0'
+  spec.version           = '0.2.1'
   spec.summary           = 'optopus is an easy-to-use option purser.'
   spec.require_paths     = %w(lib)
   spec.files             = %w(README) + Dir.glob('lib/**/*')
