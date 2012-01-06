@@ -186,34 +186,43 @@ module Optopus
 
           next unless value
 
-          value = orig_val = value.to_s
+          check_block = lambda do |unit|
+            unit = orig_val = unit.to_s
 
-          if type = args.find {|i| i.kind_of?(Class) }
-            pat, conv =  OptionParser::DefaultList.atype[type]
+            if type = args.find {|i| i.kind_of?(Class) }
+              pat, conv =  OptionParser::DefaultList.atype[type]
 
-            if pat and pat !~ value
-              raise OptionParser::InvalidArgument.new(v, "(#{key}: #{value})")
+              if pat and pat !~ unit
+                raise OptionParser::InvalidArgument.new(v, "(#{key}: #{unit})")
+              end
+
+              unit = conv.call(unit) if conv
+            elsif type = args.find {|i| i.kind_of?(Array) }
+              unless type.map {|i| i.to_s }.include?(unit.to_s)
+                raise OptionParser::InvalidArgument.new(key, unit)
+              end
+
+              unit = unit.to_s.to_sym
             end
 
-            value = conv.call(value) if conv
-          elsif type = args.find {|i| i.kind_of?(Array) }
-            unless type.map {|i| i.to_s }.include?(value.to_s)
-              raise OptionParser::InvalidArgument.new(key, value)
+            if unit and block
+              begin
+                CheckerContext.evaluate(v, unit, &block)
+              rescue OptionParser::ParseError => e
+                errmsg = "#{e.message}: #{key}=#{orig_val}"
+                raise OptionParser::ParseError, errmsg
+              end
             end
 
-            value = value.to_s.to_sym
+            return unit
           end
 
-          if value and block
-            begin
-              CheckerContext.evaluate(v, value, &block)
-            rescue OptionParser::ParseError => e
-              errmsg = "#{e.message}: #{key}=#{orig_val}"
-              raise OptionParser::ParseError, errmsg
-            end
+          if multiple
+            value = [value] unless value.kind_of?(Array)
+            options[name] = value.map {|i| check_block.call(i) }
+          else
+            options[name] = check_block.call(value)
           end
-
-          options[name] = value
         end
       end # file_args_checker
 
